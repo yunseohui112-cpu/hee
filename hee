@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오답 분석 & 복습 노트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 30px;
+            min-height: 600px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #0ea5e9;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0284c7;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .btn-secondary:hover {
+            background: #efefef;
+        }
+        
+        .btn-danger {
+            background: #fecaca;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        input[type="text"],
+        input[type="file"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.1);
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .item-card {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+        
+        .item-date {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .item-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .item-answer {
+            font-size: 13px;
+            color: #0ea5e9;
+            margin-bottom: 8px;
+        }
+        
+        .item-preview {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .quiz-question {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .quiz-progress {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .button-row button {
+            flex: 1;
+        }
+        
+        .scroll-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 메인 메뉴 -->
+        <div class="screen active" id="menu">
+            <h1>오답 분석 & 복습 노트</h1>
+            <div class="button-group">
+                <button class="btn-primary" onclick="goToScreen('add')">📸 새 오답 등록</button>
+                <button class="btn-secondary" onclick="goToScreen('note')">📚 오답노트 (<span id="count">0</span>)</button>
+                <button class="btn-secondary" onclick="goToScreen('review')">❓ 복습 퀴즈</button>
+            </div>
+        </div>
+
+        <!-- 새 오답 등록 -->
+        <div class="screen" id="add">
+            <h2>새 오답 등록</h2>
+            
+            <div class="form-group">
+                <label>🔑 Groq API 키 (처음 한 번만)</label>
+                <input type="password" id="groqKey" placeholder="gsk_..." style="font-size: 12px;">
+                <div style="font-size: 12px; color: #999; margin-top: 4px;">
+                    <a href="https://console.groq.com/keys" target="_blank" style="color: #0ea5e9;">API 키 받기</a>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>1️⃣ 문제 사진 (선택사항)</label>
+                <input type="file" id="problemImage" accept="image/*">
+                <div id="imageInfo" style="font-size: 13px; color: #999; margin-top: 4px;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>2️⃣ 문제 설명</label>
+                <textarea id="problemText" placeholder="문제를 입력하세요"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>3️⃣ 나의 풀이 과정 ⭐</label>
+                <textarea id="myProcess" placeholder="어떻게 풀었는지 설명해주세요"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>4️⃣ 정답</label>
+                <input type="text" id="correctAnswer" placeholder="정답을 입력하세요">
+            </div>
+
+            <div class="button-row">
+                <button class="btn-primary" onclick="analyzeWithAI()">🤖 AI 분석</button>
+                <button class="btn-secondary" onclick="goToScreen('menu')">돌아가기</button>
+            </div>
+            
+            <div id="analysisResult" style="display: none; margin-top: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                <h3 style="font-size: 14px; font-weight: 500; margin-bottom: 12px; color: #0284c7;">AI 분석 결과</h3>
+                <div id="analysisText" style="font-size: 13px; line-height: 1.6; color: #333; white-space: pre-wrap; max-height: 300px; overflow-y: auto;"></div>
+                <div class="button-row" style="margin-top: 12px;">
+                    <button class="btn-primary" onclick="saveAnalyzedAnswer()">저장</button>
+                    <button class="btn-secondary" onclick="clearAnalysis()">다시 분석</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 오답노트 -->
+        <div class="screen" id="note">
+            <h2>📚 오답노트</h2>
+            <div class="scroll-container" id="noteList"></div>
+            <button class="btn-secondary" onclick="goToScreen('menu')" style="width: 100%;">돌아가기</button>
+        </div>
+
+        <!-- 상세보기 -->
+        <div class="screen" id="detail">
+            <h2>📖 상세보기</h2>
+            <div id="detailContent"></div>
+            <div class="button-row">
+                <button class="btn-secondary" onclick="goToScreen('note')">뒤로</button>
+                <button class="btn-danger" onclick="deleteCurrentWrong()">삭제</button>
+            </div>
+        </div>
+
+        <!-- 복습 퀴즈 -->
+        <div class="screen" id="review">
+            <h2>❓ 복습 퀴즈</h2>
+            <div class="quiz-progress" id="quizProgress"></div>
+            <div class="quiz-question" id="quizQuestion"></div>
+            
+            <div class="form-group">
+                <label>정답을 입력하세요:</label>
+                <input type="text" id="quizAnswer" placeholder="정답">
+            </div>
+
+            <div class="button-row">
+                <button class="btn-primary" onclick="submitQuiz()">제출</button>
+                <button class="btn-secondary" onclick="skipQuiz()">스킵</button>
+                <button class="btn-secondary" onclick="goToScreen('menu')">메뉴</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wrongAnswers = [];
+        let currentDetailIndex = 0;
+        let currentQuizIndex = 0;
+        let currentAnalysis = '';
+
+        function goToScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById(screenName).classList.add('active');
+            
+            if (screenName === 'menu') {
+                updateCount();
+            } else if (screenName === 'note') {
+                renderNoteList();
+            } else if (screenName === 'review') {
+                startReviewQuiz();
+            }
+        }
+
+        function updateCount() {
+            document.getElementById('count').textContent = wrongAnswers.length;
+        }
+
+        async function analyzeWithAI() {
+            const apiKey = document.getElementById('groqKey').value.trim();
+            const process = document.getElementById('myProcess').value.trim();
+            const problemText = document.getElementById('problemText').value.trim();
+            const correctAnswer = document.getElementById('correctAnswer').value.trim();
+
+            if (!apiKey) {
+                alert('Groq API 키를 입력해주세요');
+                return;
+            }
+
+            if (!process) {
+                alert('풀이 과정을 입력해주세요');
+                return;
+            }
+
+            const prompt = `학생의 오답 분석 요청입니다.
+
+문제: ${problemText || '(입력되지 않음)'}
+
+학생의 풀이 과정:
+${process}
+
+정답: ${correctAnswer || '(입력되지 않음)'}
+
+이 학생의 풀이를 분석해주세요:
+1. 개념 오류는 무엇인가?
+2. 논리적 실수는 어디인가?
+3. 올바른 풀이는 무엇인가?
+4. 비슷한 실수를 피하는 팁
+
+친절하고 격려하는 톤으로 작성하세요.`;
+
+            try {
+                document.getElementById('analysisText').textContent = '분석 중입니다... 잠깐만 기다려주세요 ✨';
+                document.getElementById('analysisResult').style.display = 'block';
+
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'mixtral-8x7b-32768',
+                        messages: [
+                            {
+                                role: 'user',
+                                content: prompt
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1500
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 오류: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const analysis = data.choices[0].message.content;
+                
+                document.getElementById('analysisText').textContent = analysis;
+                currentAnalysis = analysis;
+
+            } catch (error) {
+                document.getElementById('analysisText').textContent = `오류: ${error.message}\n\nAPI 키를 확인해주세요.`;
+            }
+        }
+
+        function clearAnalysis() {
+            document.getElementById('analysisResult').style.display = 'none';
+            document.getElementById('analysisText').textContent = '';
+            currentAnalysis = '';
+        }
+
+        function saveAnalyzedAnswer() {
+            if (!currentAnalysis) {
+                alert('먼저 AI 분석을 실행해주세요');
+                return;
+            }
+
+            const imageName = document.getElementById('problemImage').files[0]?.name || '';
+
+            const newWrong = {
+                id: Date.now(),
+                problemText: document.getElementById('problemText').value,
+                myProcess: document.getElementById('myProcess').value,
+                correctAnswer: document.getElementById('correctAnswer').value,
+                myAnalysis: currentAnalysis,
+                imageName: imageName,
+                createdDate: new Date().toLocaleDateString('ko-KR'),
+                reviewCount: 0
+            };
+
+            wrongAnswers.unshift(newWrong);
+
+            document.getElementById('groqKey').value = '';
+            document.getElementById('problemText').value = '';
+            document.getElementById('myProcess').value = '';
+            document.getElementById('correctAnswer').value = '';
+            document.getElementById('problemImage').value = '';
+            document.getElementById('imageInfo').textContent = '';
+            clearAnalysis();
+
+            alert('오답이 저장되었습니다!');
+            goToScreen('menu');
+        }
+
+        function renderNoteList() {
+            const noteList = document.getElementById('noteList');
+            
+            if (wrongAnswers.length === 0) {
+                noteList.innerHTML = '<div class="empty-state">저장된 오답이 없습니다</div>';
+                return;
+            }
+
+            noteList.innerHTML = wrongAnswers.map((wrong, idx) => `
+                <div class="item-card">
+                    <div class="item-header">
+                        <span class="item-date">${wrong.createdDate} · 복습: ${wrong.reviewCount}회</span>
+                    </div>
+                    <div class="item-title">${wrong.problemText || '(문제 미입력)'}</div>
+                    <div class="item-answer">정답: ${wrong.correctAnswer}</div>
+                    ${wrong.myAnalysis ? `<div class="item-preview">${wrong.myAnalysis.substring(0, 100)}...</div>` : ''}
+                    <button class="btn-secondary" onclick="showDetail(${idx})" style="margin-top: 8px; width: 100%;">상세보기</button>
+                </div>
+            `).join('');
+        }
+
+        function showDetail(idx) {
+            currentDetailIndex = idx;
+            const wrong = wrongAnswers[idx];
+            
+            const detailContent = document.getElementById('detailContent');
+            detailContent.innerHTML = `
+                ${wrong.imageName ? `<div style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-size: 13px; color: #666;">📸 ${wrong.imageName}</div>` : ''}
+                
+                <div class="item-card">
+                    <div class="item-date">${wrong.createdDate} · 복습: ${wrong.reviewCount}회</div>
+                    <div style="margin-top: 12px; line-height: 1.6;">
+                        <p><strong>문제:</strong> ${wrong.problemText || '(미입력)'}</p>
+                        <p style="margin-top: 8px;"><strong>풀이:</strong> ${wrong.myProcess}</p>
+                        <p style="margin-top: 8px; color: #0ea5e9;"><strong>정답:</strong> ${wrong.correctAnswer}</p>
+                        ${wrong.myAnalysis ? `<p style="margin-top: 8px; white-space: pre-wrap;"><strong>분석:</strong> ${wrong.myAnalysis}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            goToScreen('detail');
+        }
+
+        function deleteCurrentWrong() {
+            if (confirm('이 오답을 삭제하시겠습니까?')) {
+                wrongAnswers.splice(currentDetailIndex, 1);
+                goToScreen('note');
+            }
+        }
+
+        function startReviewQuiz() {
+            if (wrongAnswers.length === 0) {
+                document.getElementById('review').innerHTML = '<div class="empty-state"><p>오답이 없습니다</p></div><button class="btn-secondary" onclick="goToScreen(\'menu\')" style="width: 100%; margin-top: 20px;">메뉴로</button>';
+                return;
+            }
+
+            currentQuizIndex = 0;
+            showQuizQuestion();
+        }
+
+        function showQuizQuestion() {
+            if (currentQuizIndex >= wrongAnswers.length) {
+                alert('모든 오답을 복습했습니다!');
+                goToScreen('menu');
+                return;
+            }
+
+            const wrong = wrongAnswers[currentQuizIndex];
+            document.getElementById('quizProgress').textContent = `${currentQuizIndex + 1} / ${wrongAnswers.length}`;
+            document.getElementById('quizQuestion').textContent = wrong.problemText || '(문제)';
+            document.getElementById('quizAnswer').value = '';
+            document.getElementById('quizAnswer').focus();
+        }
+
+        function submitQuiz() {
+            const wrong = wrongAnswers[currentQuizIndex];
+            const userAnswer = document.getElementById('quizAnswer').value.trim().toLowerCase();
+            const correctAnswer = wrong.correctAnswer.trim().toLowerCase();
+
+            wrongAnswers[currentQuizIndex].reviewCount++;
+
+            if (userAnswer === correctAnswer) {
+                alert('정답입니다! 👏');
+            } else {
+                alert(`오답입니다.\n정답: ${wrong.correctAnswer}`);
+            }
+
+            currentQuizIndex++;
+            showQuizQuestion();
+        }
+
+        function skipQuiz() {
+            currentQuizIndex++;
+            showQuizQuestion();
+        }
+
+        document.getElementById('problemImage').addEventListener('change', function() {
+            if (this.files[0]) {
+                document.getElementById('imageInfo').textContent = '✓ ' + this.files[0].name;
+            } else {
+                document.getElementById('imageInfo').textContent = '';
+            }
+        });
+
+        updateCount();
+    </script>
+</body>
+</html>
